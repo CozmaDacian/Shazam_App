@@ -1,55 +1,88 @@
-An application that tries
-to identify the artist of a song given an audio.
 
-The application uses the library librosa
-to load the song and then it uses manually created 
-functions to process it.
+Shazam_App
+This application attempts to identify the artist of a song from a short audio clip.
+It uses librosa to load audio and several manually implemented signal-processing functions to extract fingerprints for matching.
 
- Processing the data
- First we use the short time fourier to
- convert from the time domain to the frequency domain.
- As we use a sliding window for each time frame
- we also use a Hann Window https://en.wikipedia.org/wiki/Hann_function to smooth out the edges and 
- to not have frequencies that appear due to
- a sudden interuption of the signal.
+How the Processing Works
+1. Short-Time Fourier Transform (STFT)
+The audio signal is first converted from the time domain to the frequency domain using the Short-Time Fourier Transform.
+This allows analyzing the frequency content in short frames instead of the entire audio at once.
 
-We create a databse with every artist and every song
-and then we begin the hashing process.
+2. Hann Window
+Because STFT processes audio in overlapping windows, we apply a Hann window to smooth the edges of each frame.
+This prevents artificial frequencies from appearing due to sudden discontinuities.
+Reference:
+https://en.wikipedia.org/wiki/Hann_function
 
-Hashing process:
-We try to find the highest peaks ( we can also
-convert to the mel scale for this process
-as the human ear is modeled more to this scale
-than decibels). As we usually only get a fragment of a song
-we can t just hash that at time x we had y frequency as
-the song could be shifted, so we need to 
-to hash the highest peaks from each 
-each neighbourhood in a 32 bits integr the
-first 12 bits represend the anplitude of the
-first peak, the next 12 the amplitude of the second and the last
-8 bits represent the difference in time between the 2 peaks
-as this eliminates the problem with the shifting.
-and then we insert this into the databse. To reduce the number of keys per song 
-we should modify the neighborhoud constant from the constant files, because if we have
-to many keys the retrieval would be extremely slow.
-Matching Process:
-After we compute the hashes for a song
-we have to do a voting process so we use the same hashing alghorithm but with more lenient consitions more hashes per neoghborhood.
-. As many song minght have the same hash, we have
-to take the song with the highest number of votes as that one is the most likely to be the correct song
+Database Structure
+A local database is created that stores:
 
+Artists
 
-Setup: download the ffa small database from github
-and then run the populate database which also populates the
-the fingerpint table.
+Songs
 
-This project also has a machine learning part using a pca alghorithm
-written from scratch. This projects the audio in a new space and creates
-a space which can be used to separate the audio Current accuracy 60%.
-For improvements you need to train an autoencoder for the sttft wihich decomposes the signal and then reconstructs which would be better for machine learning alghorithms.
+Fingerprints (hashes)
 
+This database is used for fast lookup during the matching phase.
 
+Hashing Process
+The fingerprinting method is based on extracting the strongest spectral peaks from each time–frequency region.
 
-To add :
-a more usable menu to load 
+Steps:
 
+For each neighborhood of the spectrogram, find the highest peaks
+(optionally convert to the mel scale, which is closer to human hearing).
+
+Since the audio fragment may start at an arbitrary time, we cannot hash
+“at time X → frequency Y”.
+Instead, we use paired peak hashing.
+Each hash is stored in a 32-bit integer:
+
+First 12 bits: amplitude of the first peak
+
+Next 12 bits: amplitude of the second peak
+
+Last 8 bits: time difference between the peaks
+
+This eliminates timing-shift problems and makes fingerprints robust even for small clips.
+
+Hashes are inserted into the database.
+
+Important:
+If the neighborhood window is too small, you will generate too many hashes, making lookup slow.
+This can be tuned in the constants file.
+
+Matching Process
+
+After generating hashes for a query sample:
+
+The same hashing algorithm is applied again, but with more lenient conditions to produce more candidate hashes.
+
+Many songs may share individual hashes, so the system performs a voting process.
+
+The song with the largest number of matching hashes wins — it is considered the most likely match.
+
+Setup
+
+Download the FFA small database from GitHub.
+
+Run the populate database script.
+This fills both the song metadata and the fingerprint table.
+
+Machine Learning Component
+
+The project also contains a machine learning module:
+
+PCA (Principal Component Analysis)
+
+A PCA algorithm, implemented from scratch, is used to project audio features into a new space where classification becomes easier.
+
+Current accuracy: ~60%.
+
+Future Improvement
+
+Training an autoencoder for the STFT data would provide better feature compression and reconstruction, improving ML accuracy compared to raw PCA.
+
+To Add
+
+A more user-friendly menu for loading and recognizing audio files.
