@@ -9,7 +9,7 @@ functions to process it.
  First we use the short time fourier to
  convert from the time domain to the frequency domain.
  As we use a sliding window for each time frame
- we also use a Hann Window to smooth out the edges and 
+ we also use a Hann Window https://en.wikipedia.org/wiki/Hann_function to smooth out the edges and 
  to not have frequencies that appear due to
  a sudden interuption of the signal.
 
@@ -42,4 +42,14 @@ to take the song with the highest number of votes as that one is the most likely
 Setup: download the ffa small database from github
 and then run the populate database which also populates the
 the fingerpint table.
+
+This project also has a machine learning part using a pca alghorithm
+written from scratch. This projects the audio in a new space and creates
+a space which can be used to separate the audio Current accuracy 60%.
+For improvements you need to train an autoencoder for the sttft wihich decomposes the signal and then reconstructs which would be better for machine learning alghorithms.
+
+
+
+To add :
+a more usable menu to load 
 
