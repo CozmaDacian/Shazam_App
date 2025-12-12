@@ -34,7 +34,7 @@ we should modify the neighborhoud constant from the constant files, because if w
 to many keys the retrieval would be extremely slow.
 Matching Process:
 After we compute the hashes for a song
-we have to do a voting process so we use the same hashing alghorithm
+we have to do a voting process so we use the same hashing alghorithm but with more lenient consitions more hashes per neoghborhood.
 . As many song minght have the same hash, we have
 to take the song with the highest number of votes as that one is the most likely to be the correct song
 
